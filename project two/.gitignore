@@ -1,0 +1,4 @@
+.activated
+debts.json
+__pycache__/
+*.pyc
