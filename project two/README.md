@@ -20,9 +20,8 @@ A professional debt management system built with Python and Tkinter. This applic
    - On Linux: `sudo apt-get install python3-tk`
    - On macOS: `brew install python-tk`
 3. Download or clone this repository.
-4. Place the `license.txt` file (provided by the seller) in the same directory as the executable.
-5. (Optional) Add an `icon.ico` file in the same directory for custom window icon.
-6. Run the application: `python debt_management.py`
+4. (Optional) Add an `icon.ico` file in the same directory for custom window icon.
+5. Run the application: `python debt_management.py`
 
 ## Building Executable
 To create a standalone executable:
@@ -30,8 +29,8 @@ To create a standalone executable:
 2. Ensure `icon.ico` is in the directory for the icon.
 3. Run: `pyinstaller --onefile --noconsole --icon=icon.ico debt_management.py`
 4. The executable will be in the `dist/` folder with embedded icon.
-5. Provide the `license.txt` file to authorized users.
-6. The activation file is stored in the user's AppData/Roaming folder for security.
+5. The activation file is stored in the user's AppData/Roaming folder for security.
+6. To sell: Run the exe on the customer's PC, enter the activation code to activate it, then provide the activated exe to the customer.
 
 ## Usage
 1. Launch the program.
