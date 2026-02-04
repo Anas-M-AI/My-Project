@@ -5,9 +5,11 @@ A professional debt management system built with Python and Tkinter. This applic
 
 ## Features
 - Secure activation system
-- Add, pay, and delete debts
+- Manage debts per person with dedicated views
+- Add, pay, and delete debts for each individual
+- Display total debt per person
 - Persistent storage using JSON
-- User-friendly GUI interface
+- User-friendly GUI interface with multiple windows
 - Supports Iraqi Dinar currency
 - Arabic language support
 

@@ -72,12 +72,23 @@ class DebtManager:
     def load_debts(self):
         """
         Load debts from the JSON file.
-        Returns a list of debts.
+        Returns a dict of lists of debts per person.
         """
         if os.path.exists("debts.json"):
             with open("debts.json", "r") as f:
-                return json.load(f)
-        return []
+                data = json.load(f)
+                # Convert old format if necessary
+                if isinstance(data, list):
+                    # Old format: list of dicts
+                    new_data = {}
+                    for debt in data:
+                        name = debt['name']
+                        if name not in new_data:
+                            new_data[name] = []
+                        new_data[name].append({'amount': debt['amount'], 'due_date': debt['due_date']})
+                    return new_data
+                return data
+        return {}
 
     def save_debts(self):
         """
@@ -91,19 +102,23 @@ class DebtManager:
         self.listbox.pack(pady=10)
         self.update_listbox()
 
-        tk.Button(self.root, text="إضافة دين", command=self.add_debt).pack(side=tk.LEFT, padx=5)
-        tk.Button(self.root, text="دفع دين", command=self.pay_debt).pack(side=tk.LEFT, padx=5)
-        tk.Button(self.root, text="حذف دين", command=self.delete_debt).pack(side=tk.LEFT, padx=5)
+        tk.Button(self.root, text="إضافة شخص جديد", command=self.add_person).pack(side=tk.LEFT, padx=5)
+        tk.Button(self.root, text="عرض ديون الشخص", command=self.view_person).pack(side=tk.LEFT, padx=5)
+        tk.Button(self.root, text="حذف شخص", command=self.delete_person).pack(side=tk.LEFT, padx=5)
         tk.Button(self.root, text="خروج", command=self.root.quit).pack(side=tk.RIGHT, padx=5)
 
     def update_listbox(self):
         self.listbox.delete(0, tk.END)
-        for debt in self.debts:
-            self.listbox.insert(tk.END, f"{debt['name']}: {debt['amount']} دينار عراقي - استحقاق: {debt['due_date']}")
+        for name, debts in self.debts.items():
+            total = sum(debt['amount'] for debt in debts)
+            self.listbox.insert(tk.END, f"{name}: إجمالي الديون {total} دينار عراقي")
 
-    def add_debt(self):
-        name = simpledialog.askstring("إضافة دين", "اسم المدين:")
+    def add_person(self):
+        name = simpledialog.askstring("إضافة شخص جديد", "اسم المدين:")
         if not name:
+            return
+        if name in self.debts:
+            messagebox.showerror("خطأ", "الشخص موجود بالفعل!")
             return
         amount = simpledialog.askfloat("إضافة دين", "المبلغ بالدينار العراقي:")
         if amount is None:
@@ -111,35 +126,104 @@ class DebtManager:
         due_date = simpledialog.askstring("إضافة دين", "تاريخ الاستحقاق (YYYY-MM-DD):")
         if not due_date:
             return
-        self.debts.append({"name": name, "amount": amount, "due_date": due_date})
+        self.debts[name] = [{"amount": amount, "due_date": due_date}]
         self.save_debts()
         self.update_listbox()
 
-    def pay_debt(self):
+    def view_person(self):
         selected = self.listbox.curselection()
+        if not selected:
+            messagebox.showwarning("تحذير", "اختر شخصاً لعرض ديونه!")
+            return
+        index = selected[0]
+        name = list(self.debts.keys())[index]
+        self.open_person_window(name)
+
+    def open_person_window(self, name):
+        person_window = tk.Toplevel(self.root)
+        person_window.title(f"ديون {name}")
+        try:
+            person_window.iconbitmap('icon.ico')
+        except:
+            pass
+
+        debts = self.debts[name]
+        total = sum(debt['amount'] for debt in debts)
+
+        tk.Label(person_window, text=f"إجمالي الديون: {total} دينار عراقي", font=("Arial", 14)).pack(pady=10)
+
+        listbox = tk.Listbox(person_window, width=50, height=10)
+        listbox.pack(pady=10)
+        for i, debt in enumerate(debts):
+            listbox.insert(tk.END, f"{i+1}. {debt['amount']} دينار - استحقاق: {debt['due_date']}")
+
+        tk.Button(person_window, text="إضافة دين جديد", command=lambda: self.add_debt_to_person(name, listbox, person_window)).pack(side=tk.LEFT, padx=5)
+        tk.Button(person_window, text="دفع دين", command=lambda: self.pay_debt_person(name, listbox, person_window)).pack(side=tk.LEFT, padx=5)
+        tk.Button(person_window, text="حذف دين", command=lambda: self.delete_debt_person(name, listbox, person_window)).pack(side=tk.LEFT, padx=5)
+        tk.Button(person_window, text="إغلاق", command=person_window.destroy).pack(side=tk.RIGHT, padx=5)
+
+    def add_debt_to_person(self, name, listbox, window):
+        amount = simpledialog.askfloat("إضافة دين", "المبلغ بالدينار العراقي:")
+        if amount is None:
+            return
+        due_date = simpledialog.askstring("إضافة دين", "تاريخ الاستحقاق (YYYY-MM-DD):")
+        if not due_date:
+            return
+        self.debts[name].append({"amount": amount, "due_date": due_date})
+        self.save_debts()
+        self.update_person_window(name, listbox, window)
+
+    def pay_debt_person(self, name, listbox, window):
+        selected = listbox.curselection()
         if not selected:
             messagebox.showwarning("تحذير", "اختر ديناً للدفع!")
             return
         index = selected[0]
-        pay_amount = simpledialog.askfloat("دفع دين", f"مبلغ الدفع بالدينار العراقي لـ {self.debts[index]['name']}:")
+        pay_amount = simpledialog.askfloat("دفع دين", f"مبلغ الدفع بالدينار العراقي:")
         if pay_amount is None or pay_amount <= 0:
             return
-        if pay_amount >= self.debts[index]['amount']:
-            del self.debts[index]
+        if pay_amount >= self.debts[name][index]['amount']:
+            del self.debts[name][index]
         else:
-            self.debts[index]['amount'] -= pay_amount
+            self.debts[name][index]['amount'] -= pay_amount
         self.save_debts()
+        self.update_person_window(name, listbox, window)
         self.update_listbox()
 
-    def delete_debt(self):
-        selected = self.listbox.curselection()
+    def delete_debt_person(self, name, listbox, window):
+        selected = listbox.curselection()
         if not selected:
             messagebox.showwarning("تحذير", "اختر ديناً لحذفه!")
             return
         index = selected[0]
-        del self.debts[index]
+        del self.debts[name][index]
         self.save_debts()
+        self.update_person_window(name, listbox, window)
         self.update_listbox()
+
+    def update_person_window(self, name, listbox, window):
+        debts = self.debts[name]
+        total = sum(debt['amount'] for debt in debts)
+        # Update total label - assuming it's the first label
+        for widget in window.winfo_children():
+            if isinstance(widget, tk.Label) and "إجمالي" in widget.cget("text"):
+                widget.config(text=f"إجمالي الديون: {total} دينار عراقي")
+                break
+        listbox.delete(0, tk.END)
+        for i, debt in enumerate(debts):
+            listbox.insert(tk.END, f"{i+1}. {debt['amount']} دينار - استحقاق: {debt['due_date']}")
+
+    def delete_person(self):
+        selected = self.listbox.curselection()
+        if not selected:
+            messagebox.showwarning("تحذير", "اختر شخصاً لحذفه!")
+            return
+        index = selected[0]
+        name = list(self.debts.keys())[index]
+        if messagebox.askyesno("تأكيد", f"هل تريد حذف {name} وجميع ديونه؟"):
+            del self.debts[name]
+            self.save_debts()
+            self.update_listbox()
 
 if __name__ == "__main__":
     print("جاري تشغيل النظام...")
