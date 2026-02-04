@@ -20,13 +20,22 @@ print("بدء تشغيل النظام...")
 # Activation code (hardcoded for demo, change to your desired code)
 ACTIVATION_CODE = "my sweet"
 ACTIVATION_FILE = ".activated"
+LICENSE_FILE = "license.txt"
+LICENSE_CONTENT = "Licensed to Anas Mohammed - Valid License"
 
 def check_activation():
     """
-    Check if the program has been activated by looking for the activation file.
+    Check if the program has been activated by looking for the activation file and license.
     Returns True if activated, False otherwise.
     """
     print("فحص التفعيل...")
+    if not os.path.exists(LICENSE_FILE):
+        print("ملف الترخيص غير موجود.")
+        return False
+    with open(LICENSE_FILE, "r") as f:
+        if f.read().strip() != LICENSE_CONTENT:
+            print("محتوى الترخيص غير صحيح.")
+            return False
     if os.path.exists(ACTIVATION_FILE):
         print("ملف التفعيل موجود.")
         return True
