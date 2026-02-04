@@ -27,9 +27,11 @@ A professional debt management system built with Python and Tkinter. This applic
 ## Building Executable
 To create a standalone executable:
 1. Install PyInstaller: `pip install pyinstaller`
-2. Run: `pyinstaller --onefile --noconsole --icon=icon.ico debt_management.py`
-3. The executable will be in the `dist/` folder.
-4. Provide the `license.txt` file to authorized users.
+2. Ensure `icon.ico` is in the directory for the icon.
+3. Run: `pyinstaller --onefile --noconsole --icon=icon.ico debt_management.py`
+4. The executable will be in the `dist/` folder with embedded icon.
+5. Provide the `license.txt` file to authorized users.
+6. The activation file is stored in the user's AppData/Roaming folder for security.
 
 ## Usage
 1. Launch the program.

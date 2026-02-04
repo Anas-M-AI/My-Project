@@ -19,7 +19,7 @@ print("بدء تشغيل النظام...")
 
 # Activation code (hardcoded for demo, change to your desired code)
 ACTIVATION_CODE = "my sweet"
-ACTIVATION_FILE = ".activated"
+ACTIVATION_FILE = os.path.join(os.environ.get('APPDATA', ''), '.activated')
 LICENSE_FILE = "license.txt"
 LICENSE_CONTENT = "Licensed to Anas Mohammed - Valid License"
 
